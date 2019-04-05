@@ -7,6 +7,7 @@ from PIL import Image, ImageOps
 import random
 import sys
 from sklearn.utils import shuffle
+import os
 
 def crop_to_square(image, upsampling):
     """
@@ -120,7 +121,10 @@ def extract_n_normalize_image(path):
     Extract DICOM image from path
     """
     ds = cv2.imread(path)
+    print(os.path.abspath(path))
     ds = cv2.cvtColor(ds, cv2.COLOR_BGR2GRAY)
+    # cv2.resize(ds,)
+    print(ds.shape)
     return ds.astype(float)/255
 
 def get_batch(batch_size, size, x_filenames, y_filenames):

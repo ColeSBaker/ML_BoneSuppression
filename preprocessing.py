@@ -1,7 +1,8 @@
 from __future__ import division
 from configparser import ConfigParser
 import argparse
-from utils import extract_image_path, extract_n_preprocess_dicom, check_and_create_dir, extract_image, augment_image_pair
+from utils import extract_image_path, extract_n_preprocess_dicom, check_and_create_dir, extract_image, augment_image_pair, extract_n_normalize_image
+from PIL import Image, ImageOps
 import imreg_dft as ird
 import os
 import cv2
@@ -9,6 +10,7 @@ from scipy.misc import imsave
 from multiprocessing.pool import Pool
 from itertools import product
 import numpy as np
+import shutil
 
 def similarity(params):
     """
@@ -86,16 +88,18 @@ def augmentation_pair(params):
     if verbose:
         print("Augmented image %r ..." % filename)
 
-def augmentation(verbose, num_threads, source_dir, target_dir, augmentation_seed, size, output_dir):
+def augmentation(verbose, num_threads, source_dir, target_dir, augmentation_seed, size, output_dir, split_train = False):
     """
     Augment registered images and save to output_dir
+    flips, rotates, mirrors shifts etc... each input/outpute to create (augmentation_seed) copies to make results more robust
     """
+
     # Get images paths
     if verbose: print("Get image paths ...")
     source_images, target_images = get_image_path_from(source_dir, target_dir)
 
     # Check and create output directory
-    source_out_dir, target_out_dir = check_n_create_output_dir(output_dir )
+    source_out_dir, target_out_dir = check_n_create_output_dir(output_dir)
 
     # Augmenting images
 
@@ -114,12 +118,48 @@ def augmentation(verbose, num_threads, source_dir, target_dir, augmentation_seed
     pool.close()
     pool.join()
 
+def split_train(source_dir_in, target_dir_in,output_dir,augmentation_seed=1):
+     # takes unified x at "source folder", y "target folder" and splits into training/ testing batches at "split output dir/test /train" 
+
+    # make in config file
+    num_train = 25
+    total = 241
+
+    p_test = num_train/total
+
+
+    train_ids = np.random.choice(2, total, p=[1-p_test, p_test]) # 1 if training index, 0 else
+
+
+    source_images, target_images = get_image_path_from(source_dir_in, target_dir_in)
+
+    # selects only the files from test or train indexes respectively
+    test_source_images = np.asarray(source_images)[np.nonzero(train_ids-1)]
+    test_target_images = np.asarray(target_images)[np.nonzero(train_ids-1)]
+
+    train_target_images = np.asarray(target_images)[np.nonzero(train_ids)]
+    train_source_images = np.asarray(source_images)[np.nonzero(train_ids)]
+
+    test_source_out_dir, test_target_out_dir = check_n_create_output_dir(output_dir+"/test")
+    train_source_out_dir, train_target_out_dir = check_n_create_output_dir(output_dir+"/train")
+    
+
+    # copies all proper images from unified folder to specific test and train directories
+    for i in range(len(test_source_images)):
+        shutil.copy(test_target_images[i],test_target_out_dir)
+        shutil.copy(test_source_images[i],test_source_out_dir)
+
+    for i in range(len(train_source_images)):
+        print(train_target_out_dir)
+        shutil.copy(train_target_images[i],train_target_out_dir)
+        shutil.copy(train_source_images[i],train_source_out_dir)
+
+       
+
 def main(args):
     # see data_preprossing.cfg
     cp = ConfigParser()
     cp.read(args.config)
-    print(args.config)
-    print(cp["DATA"], "config parser")
     verbose = cp["DATA"].getboolean("verbose")
     num_threads = cp["DATA"].getint("num_threads")
     image_size = cp["DATA"].getint("image_size")
@@ -136,9 +176,11 @@ def main(args):
     augmentation_seed = cp["AUGMENTATION"].getint("augmentation_seed")
     output_dir +=  str(augmentation_seed)
     is_augmentation = cp["AUGMENTATION"].getboolean("data_augmentation")
+
     if is_augmentation:
         if verbose: print("Starting augmentation data ...")
         augmentation(verbose, num_threads, source_dir, target_dir, augmentation_seed, image_size, output_dir)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hmchuong - BoneSuppression v2 - Preprocessing data')

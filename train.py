@@ -6,6 +6,7 @@ from model import AELikeModel
 def main(args):
     # parser config
     # see train.cfg for parameters
+    
     print('main')
     cp = ConfigParser()
     cp.read(args.config)
@@ -25,12 +26,13 @@ def main(args):
     output_log = cp["TRAIN"].get("output_log")
     batch_size = cp["TRAIN"].getint("batch_size")
     verbose = cp["TRAIN"].getboolean("verbose")
-    # Training
+
+
     trained_model = None
     if use_trained_model:
         trained_model = cp["TRAIN"].get("trained_model")
-    print('into the model')
-    model = AELikeModel(image_size, alpha,verbose, trained_model)
+        
+    model = AELikeModel(image_size, alpha, AE = False, verbose, trained_model)
     model.train(source_folder, target_folder, epochs, train_steps, learning_rate, epochs_to_reduce_lr, reduce_lr, output_model, output_log, batch_size)
 
 if __name__ == '__main__':
