@@ -4,8 +4,14 @@ The project is a tool to build **Bone Suppression** model, written in tensorflow
 
 <img src="description.png" alt="CAM example image"/>
 
-## What is [Bone Suppression](https://www.researchgate.net/publication/320252756_Deep_learning_models_for_bone_suppression_in_chest_radiographs?enrichId=rgreq-7b19be48d9763ea61b22252eaf96edca-XXX&enrichSource=Y292ZXJQYWdlOzMyMDI1Mjc1NjtBUzo1ODQ1MzY0NDY0ODAzODRAMTUxNjM3NTc1NzU5Nw%3D%3D&el=1_x_3&_esc=publicationCoverPdf)?
-Bone suppression is an autoencoder-like model for eliminating bone shadow from Chest X-ray images. The model require two types of dataset: normal  and bone-suppression X-ray images. The target model can suppress bone shadow from Chest X-ray images, help Radiologists diagnose better lung related diseases. Although there are some softwares supporting bone suppression ([ClearRead](https://www.riveraintech.com/clearread-xray/), [CareStream](https://www.itnonline.com/content/carestream%E2%80%99s-new-bone-suppression-software-receives-fda-clearance)), this project is a practical open source in computer vision and deep learning.
+##AutoEncoding
+[paper](https://www.researchgate.net/publication/320252756_Deep_learning_models_for_bone_suppression_in_chest_radiographs?enrichId=rgreq-7b19be48d9763ea61b22252eaf96edca-XXX&enrichSource=Y292ZXJQYWdlOzMyMDI1Mjc1NjtBUzo1ODQ1MzY0NDY0ODAzODRAMTUxNjM3NTc1NzU5Nw%3D%3D&el=1_x_3&_esc=publicationCoverPdf)
+
+This code is based off of two models described in this paper. The first is an autoencoder-like model of CNNs that shrinks the image down before deconding it with mirrored weights. The second is a family of
+CNN's that keeps the image size the same.
+
+##Data Set
+I trained the model on the JRT dataset and the associated bone free images in the BJRT data set.
 
 ## In this project you can
 1. Preprocessing data, including registration and augmentation.
@@ -15,13 +21,6 @@ Bone suppression is an autoencoder-like model for eliminating bone shadow from C
 ## Requirements
 The project requires `Python>=3.5`.
 
-I have trained on an instance with `1 NVIDIA GTX 1080Ti (11GB VRAM)` and it takes approximately 14 hours.
-
-## Configuration
-### [DATA](config/data_preprocessing.cfg)
-1. You can download the dataset [here](https://www.kaggle.com/hmchuong/xray-bone-shadow-supression). This dataset includes 3 parts: `JSRT` dataset in `png` format, `BSE_JSRT` dataset in `png` format, and `augmented` dataset which can be trained directly.
-2. To register the dataset, make sure you set `data_registration` to `true`, and the input images are read from `source_dir` (JSRT) and `target_dir` (BSE_JSRT). The registered images will be saved to `registered_output_dir` into `source` and `target` subdirectories.
-3. To augment the dataset, make sure you set `data_augmentation` to `true`, the `source_dir` and `target_dir` will be used to augment. `The total data after augmentation for source/target` = `augmentation_seed` X total number of images in `source_dir` or `target_dir`. The augmented images will be saved to `source` and `target` subdirectories of `augmented_output_dir` with `.png` extension.
 
 ### [TRAIN](config/train.cfg)
 1. `source_folder` and `target_folder` are folders to load training images.
@@ -48,9 +47,9 @@ During training, you can use Tensorboard to visualize the results:
 ```
 tensorboard --logdir=<output_log in train.cfg>
 ```
-5. Run `python test.py` to evaluate your model on specific image. To change default parameters, you can use:
+5. Run `python master.py` to augment the data set, split the set into test and training sets, train the model and test the model.
+To change default parameters, you can use:
 ```
-python test.py --model <model_path> --config <model config path> --input <image path> --output <output image path>
 ```
 
 ## Acknowledgement
