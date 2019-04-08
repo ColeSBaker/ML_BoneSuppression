@@ -51,12 +51,3 @@ tensorboard --logdir=<output_log in train.cfg>
 To change default parameters, you can use:
 ```
 ```
-
-## Acknowledgement
-I would like to thank [LoudeNOUGH](https://github.com/LoudeNOUGH/bone-suppression) for scratch training script and Hussam Habbreeh (حسام هب الريح) for sharing his experiences on this task.
-
-## Author
-Chuong M. Huynh (minhchuong.itus@gmail.com)
-
-## License
-MIT
